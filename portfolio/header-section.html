@@ -1,79 +1,39 @@
 <style>
-  /* Base Header Style */
-  header {
-    background: #222;
-    padding: 20px 20px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-  }
-
-  header h1 {
-    color: #00c896;
-    font-size: 1.5rem;
-  }
-
-  header img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1 1 auto;
-  }
-
-  nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-end;
-    flex: 1 1 100%;
-    margin-top: 10px;
-  }
-
-  nav a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    background: #222;
-    border-radius: 5px;
-    transition: 0.3s;
-  }
-
-  nav a:hover {
-    background: #333;
-  }
-
-  @media (min-width: 600px) {
+  /* Header & Navigation */
     header {
-      flex-wrap: nowrap;
+      background: #222;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    nav {
-      flex: 0 0 auto;
-      margin-top: 0;
+    header h1 {
+      color: #00c896;
     }
-  }
+
+    nav a {
+      margin-left: 20px;
+      padding: 10px 15px;
+      background: #222;
+      border-radius: 5px;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      background: #333;
+    }
 </style>
 
 <!-- Header Navigation -->
-<header>
-  <div class="header-left">
+<header style="display: flex; align-items: center; padding: 20px; color: white;">
     <a href="profile.html">
-      <img src="img/FernandezRonelPilo.jpg" alt="Profile">
+      <img src="img/FernandezRonelPilo.jpg" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px;">
     </a>
-    <h1>My Portfolio</h1>
-  </div>
-  <nav>
-    <a href="#about">About Me</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
+    <h1 style="margin: 0;">My Portfolio</h1>
+    <nav style="margin-left: auto;">
+      <a href="#about">About Me</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
 </header>
