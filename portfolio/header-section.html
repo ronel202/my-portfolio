@@ -1,19 +1,13 @@
 <style>
+  /* Base Header Style */
   header {
     background: #222;
-    padding: 20px;
-    color: white;
+    padding: 20px 20px;
     display: flex;
-    flex-direction: column; /* Mobile: stack by default */
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-  .header-top {
-    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    width: 100%;
+    color: white;
   }
 
   header h1 {
@@ -25,46 +19,53 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
   }
 
   nav {
     display: flex;
-    flex-wrap: wrap; /* ✅ Allows wrapping */
+    flex-wrap: wrap;
     gap: 10px;
-    width: 100%;
+    justify-content: flex-end;
+    flex: 1 1 100%;
+    margin-top: 10px;
   }
 
   nav a {
     color: white;
     text-decoration: none;
     padding: 10px 15px;
-    background: #333;
+    background: #222;
     border-radius: 5px;
-    transition: background 0.3s;
+    transition: 0.3s;
   }
 
   nav a:hover {
-    background: #444;
+    background: #333;
   }
 
-  /* Desktop layout */
   @media (min-width: 600px) {
     header {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
+      flex-wrap: nowrap;
     }
 
     nav {
-      justify-content: flex-end;
-      width: auto;
+      flex: 0 0 auto;
+      margin-top: 0;
     }
   }
 </style>
 
-<!-- Responsive Header HTML -->
+<!-- Header Navigation -->
 <header>
-  <div class="header-top">
+  <div class="header-left">
     <a href="profile.html">
       <img src="img/FernandezRonelPilo.jpg" alt="Profile">
     </a>
