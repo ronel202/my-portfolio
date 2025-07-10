@@ -1,36 +1,33 @@
 <style>
   header {
     background: #222;
-    color: white;
     padding: 20px;
-    text-align: center;
-  }
-
-  .header-top {
+    color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    text-align: center;
+    gap: 15px;
   }
 
-  .header-top img {
+  header img {
     width: 60px;
     height: 60px;
     border-radius: 50%;
   }
 
-  .header-top h1 {
+  header h1 {
     color: #00c896;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin: 0;
   }
 
   nav {
-    margin-top: 15px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
+    width: 100%;
   }
 
   nav a {
@@ -39,27 +36,32 @@
     padding: 10px 15px;
     background: #333;
     border-radius: 5px;
-    transition: 0.3s;
     font-size: 0.9rem;
+    transition: background 0.3s;
   }
 
   nav a:hover {
     background: #444;
   }
 
+  /* Optional: Desktop enhancement */
   @media (min-width: 768px) {
-    .header-top {
+    header {
       flex-direction: row;
-      justify-content: center;
-      gap: 15px;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
     }
 
-    header {
-      text-align: left;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     nav {
       justify-content: flex-end;
+      width: auto;
     }
   }
 </style>
