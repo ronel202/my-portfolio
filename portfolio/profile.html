@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .profile-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .profile-img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+
+    .profile-info {
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .back-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #00c896;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-button:hover {
+      background-color: #009e78;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Profile</h1>
+  </header>
+
+  <div class="profile-container">
+    <img src="img/FernandezRonelPilo.jpg" alt="Profile Image" class="profile-img">
+    <div class="profile-info">
+      <h2>Ronel Pilo Fernandez</h2>
+      <p><strong>Email:</strong> mronel472@gmail.com</p>
+      <p><strong>Alternate Email:</strong> 20ronel22@gmail.com</p>
+      <p><strong>About Me:</strong> I'm a passionate web developer from the Philippines who enjoys building responsive websites using PHP, HTML, CSS, and MySQL.</p>
+
+      <!-- ✅ Back Button Here -->
+      <a href="index.html" class="back-button">← Back to Home</a>
+    </div>
+  </div>
+
+</body>
+</html>

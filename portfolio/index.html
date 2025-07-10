@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Portfolio</title>
+  <link rel="stylesheet" href="content/css/nav.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: #f2f2f2;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Add this at the top -->
+  <div id="header-container"></div>
+
+  <script>
+    fetch("header-section.html")
+      .then(response => {
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        return response.text();
+      })
+      .then(data => {
+        document.getElementById("header-container").innerHTML = data;
+      })
+      .catch(error => {
+        console.error("Failed to load header-section.html:", error);
+      });
+  </script>
+
+  <!-- Sections -->
+  <section id="about">
+    <h2>About Me</h2>
+    <p>Hello! I'm <strong>Ronel Pilo Fernandez</strong>, a passionate web developer based in the Philippines. I love building clean, responsive websites and learning new technologies every day.</p>
+  </section>
+
+  <section id="projects">
+    <h2>My Projects</h2>
+    <div class="project-card">
+      <h3>Catering Booking System</h3>
+      <p>A full-featured system for event reservations, menu selections, and admin management. Built using PHP, MySQL, HTML, and CSS.</p>
+    </div>
+
+    <div class="project-card">
+      <h3>Responsive Portfolio</h3>
+      <p>This website you're currently viewing — fully responsive, clean UI, and easy navigation for showcasing projects.</p>
+    </div>
+  </section>
+
+  <section id="seminar">
+    <h2>Seminars Attended</h2>
+  </section>
+
+  <section id="contact">
+    <h2>Contact Me</h2>
+    <p>
+      You can reach me via email at 
+      <strong><a href="mailto:mronel472@gmail.com" style="color: #00c896;">mronel472@gmail.com</a></strong><br>
+      or through my alternate Gmail at 
+      <strong><a href="mailto:20ronel22@gmail.com" style="color: #00c896;">20ronel22@gmail.com</a></strong>.<br>
+      You can also connect with me through my social accounts below.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer style="text-align: center; padding: 20px 0; background-color: #333; color: #fff;">
+    <p>Ronel Pilo Fernandez</p>
+    <div style="margin-top: 10px;">
+      <a href="https://facebook.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-facebook fa-lg"></i>
+      </a>
+      <a href="https://github.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-github fa-lg"></i>
+      </a>
+      <a href="https://linkedin.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-linkedin fa-lg"></i>
+      </a>
+    </div>
+  </footer>
+
+</body>
+</html>
