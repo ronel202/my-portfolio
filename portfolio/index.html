@@ -21,10 +21,8 @@
   </style>
 </head>
 <body>
-
-  <!-- ✅ Add this at the top -->
   <div id="header-container"></div>
-
+  <div id="footer-container"></div>
   <script>
     fetch("header-section.html")
       .then(response => {
@@ -36,6 +34,18 @@
       })
       .catch(error => {
         console.error("Failed to load header-section.html:", error);
+      });
+
+    fetch("footer-section.html")
+      .then(response => {
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        return response.text();
+      })
+      .then(data => {
+        document.getElementById("footer-container").innerHTML = data;
+      })
+      .catch(error => {
+        console.error("Failed to load footer-section.html:", error);
       });
   </script>
 
