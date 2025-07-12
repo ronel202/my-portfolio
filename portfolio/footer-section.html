@@ -1,0 +1,15 @@
+<!-- Footer -->
+  <footer style="text-align: center; padding: 20px 0; background-color: #333; color: #fff;">
+    <p>Ronel Pilo Fernandez</p>
+    <div style="margin-top: 10px;">
+      <a href="https://facebook.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-facebook fa-lg"></i>
+      </a>
+      <a href="https://github.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-github fa-lg"></i>
+      </a>
+      <a href="https://linkedin.com/" target="_blank" style="margin: 0 10px; color: #fff;">
+        <i class="fab fa-linkedin fa-lg"></i>
+      </a>
+    </div>
+  </footer>
