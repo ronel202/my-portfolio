@@ -112,21 +112,31 @@
 
   <!-- Logging Script to Google Sheets -->
   <script>
-    document.querySelector("form").addEventListener("submit", function (e) {
-      const emailInput = document.querySelector("#email").value;
+  document.querySelector("form").addEventListener("submit", function (e) {
+    e.preventDefault(); // para hindi mag-refresh agad
 
-      // Log to Google Sheets (replace with your own Google Apps Script URL)
-      fetch("https://script.google.com/macros/s/AKfycbymZC_PFbbfAWjO7BT5FZmo-kkkdQ2zpXye1OGpu2vbWT2Jr4KOu04xTF3QzdimAbNedA/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: emailInput,
-          timestamp: new Date().toISOString()
-        })
-      }).catch(error => console.error("Logging to Google Sheets failed:", error));
+    const emailInput = document.querySelector("#email").value;
+
+    const formData = new URLSearchParams();
+    formData.append("email", emailInput);
+
+    fetch("https://script.google.com/macros/s/AKfycbymZC_PFbbfAWjO7BT5FZmo-kkkdQ2zpXye1OGpu2vbWT2Jr4KOu04xTF3QzdimAbNedA/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString()
+    })
+    .then(response => response.text())
+    .then(result => {
+      console.log("Success:", result);
+      // optionally redirect here
+      window.location.href = "thankyou.html"; // or any page
+    })
+    .catch(error => {
+      console.error("Error:", error);
     });
-  </script>
+  });
+</script>
 </body>
 </html>
