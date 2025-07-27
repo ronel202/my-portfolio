@@ -109,5 +109,24 @@
         console.error("Failed to load footer-section.html:", error);
       });
   </script>
+
+  <!-- Logging Script to Google Sheets -->
+  <script>
+    document.querySelector("form").addEventListener("submit", function (e) {
+      const emailInput = document.querySelector("#email").value;
+
+      // Log to Google Sheets (replace with your own Google Apps Script URL)
+      fetch("https://script.google.com/u/0/home/projects/1ZRBVZmBwSFHTDIO2cVLKKmFW-vXuqHo8VHWe6EeSWhqA-dxEuZXrsaKS/edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: emailInput,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(error => console.error("Logging to Google Sheets failed:", error));
+    });
+  </script>
 </body>
 </html>
