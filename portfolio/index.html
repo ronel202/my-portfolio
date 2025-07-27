@@ -112,11 +112,12 @@
 
   <!-- Logging Script to Google Sheets -->
   <script>
-  document.querySelector("form").addEventListener("submit", function (e) {
-    e.preventDefault(); // para hindi mag-refresh agad
+  const form = document.querySelector("form");
 
+  form.addEventListener("submit", function () {
     const emailInput = document.querySelector("#email").value;
 
+    // Log to Google Sheets silently (without blocking formsubmit.co)
     const formData = new URLSearchParams();
     formData.append("email", emailInput);
 
@@ -126,16 +127,11 @@
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString()
-    })
-    .then(response => response.text())
-    .then(result => {
-      console.log("Success:", result);
-      // optionally redirect here
-      window.location.href = "thankyou.html"; // or any page
-    })
-    .catch(error => {
-      console.error("Error:", error);
-    });
+    }).then(res => res.text())
+      .then(msg => console.log("Logged to Sheet:", msg))
+      .catch(err => console.error("Log failed:", err));
+    
+    // ⚠️ Do NOT prevent default submission — allow formsubmit.co to work
   });
 </script>
 </body>
