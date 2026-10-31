@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ronel Pilo Fernandez — Full-Stack Web &amp; Mobile Developer</title>
-  <meta name="description" content="Portfolio ni Ronel Pilo Fernandez, Full-Stack Web & Mobile Software Developer mula sa Pilipinas.">
+  <title>Ronel Pilo Fernandez — Full-Stack Web &amp; Game Developer</title>
+  <meta name="description" content="Portfolio ni Ronel Pilo Fernandez, Full-Stack Web & Game Developer mula sa Pilipinas.">
   <meta name="theme-color" content="#0b0a09">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="is-gated">
   <div class="grain" aria-hidden="true"></div>
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+  <!-- ============ LANGUAGE GATE (shown on every visit) ============ -->
+  <div class="gate" id="langGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <div class="gate__panel glass">
+      <p class="kicker">Language · Wika</p>
+      <h2 class="gate__title" id="gateTitle" data-i18n="gate.title">Choose your language</h2>
+      <p class="gate__sub" data-i18n="gate.sub">Piliin ang wika mo</p>
+      <div class="gate__opts">
+        <button type="button" class="gate__opt" data-lang="en"><b>EN</b><span>English</span></button>
+        <button type="button" class="gate__opt" data-lang="tl"><b>TL</b><span>Filipino</span></button>
+      </div>
+      <p class="gate__hint" data-i18n="gate.hint">You can change this anytime from the menu.</p>
+    </div>
+  </div>
 
   <!-- ============ SIDE PROGRESS RAIL ============ -->
   <aside class="rail" id="rail" aria-hidden="true">
@@ -22,18 +36,20 @@
     <span class="rail__label" id="railLabel">01 / Hero</span>
   </aside>
 
-  <!-- ============ FLOATING DOCK (opens command palette) ============ -->
+  <!-- ============ FLOATING DOCK ============ -->
   <nav class="dock" id="dock" aria-label="Primary">
     <div class="dock__items" id="dockItems">
-      <a href="#hero"     data-section="hero"     class="dock__item" aria-label="Home"><span class="dock__icon">⌂</span><span class="dock__tip">Home</span></a>
-      <a href="#about"    data-section="about"    class="dock__item" aria-label="About"><span class="dock__icon">◐</span><span class="dock__tip">About</span></a>
-      <a href="#projects" data-section="projects" class="dock__item" aria-label="Works"><span class="dock__icon">◧</span><span class="dock__tip">Works</span></a>
-      <a href="#skills"   data-section="skills"   class="dock__item" aria-label="Skills"><span class="dock__icon">✦</span><span class="dock__tip">Skills</span></a>
-      <a href="#contact"  data-section="contact"  class="dock__item" aria-label="Contact"><span class="dock__icon">✉</span><span class="dock__tip">Contact</span></a>
+      <a href="#hero"     data-section="hero"     class="dock__item" aria-label="Home"><span class="dock__icon">⌂</span><span class="dock__tip" data-i18n="nav.home">Home</span></a>
+      <a href="#about"    data-section="about"    class="dock__item" aria-label="About"><span class="dock__icon">◐</span><span class="dock__tip" data-i18n="nav.about">About</span></a>
+      <a href="#projects" data-section="projects" class="dock__item" aria-label="Works"><span class="dock__icon">◧</span><span class="dock__tip" data-i18n="nav.works">Works</span></a>
+      <a href="#skills"   data-section="skills"   class="dock__item" aria-label="Skills"><span class="dock__icon">✦</span><span class="dock__tip" data-i18n="nav.skills">Skills</span></a>
+      <a href="#resume"   data-section="resume"   class="dock__item" aria-label="Resume"><span class="dock__icon">▤</span><span class="dock__tip" data-i18n="nav.resume">Resume</span></a>
+      <a href="#contact"  data-section="contact"  class="dock__item" aria-label="Contact"><span class="dock__icon">✉</span><span class="dock__tip" data-i18n="nav.contact">Contact</span></a>
     </div>
     <span class="dock__sep"></span>
+    <button class="dock__lang" id="langBtn" type="button" aria-label="Change language"><span id="langCode">EN</span></button>
     <button class="dock__cmd" id="openPalette" type="button" aria-label="Open command menu">
-      <span>Menu</span><kbd>Ctrl K</kbd>
+      <span data-i18n="nav.menu">Menu</span><kbd>Ctrl K</kbd>
     </button>
   </nav>
 
@@ -43,11 +59,11 @@
     <div class="palette__panel" role="dialog" aria-modal="true" aria-label="Command menu">
       <div class="palette__search">
         <span aria-hidden="true">⌕</span>
-        <input id="paletteInput" type="text" placeholder="Pumunta sa… (about, projects, email, cv)" autocomplete="off" spellcheck="false">
+        <input id="paletteInput" type="text" data-i18n-ph="pal.ph" placeholder="Jump to… (about, projects, email, cv)" autocomplete="off" spellcheck="false">
         <kbd>Esc</kbd>
       </div>
       <ul class="palette__list" id="paletteList" role="listbox"></ul>
-      <div class="palette__foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> select</span></div>
+      <div class="palette__foot"><span><kbd>↑</kbd><kbd>↓</kbd> <i data-i18n="pal.nav">navigate</i></span><span><kbd>↵</kbd> <i data-i18n="pal.sel">select</i></span></div>
     </div>
   </div>
 
@@ -56,37 +72,27 @@
   <main>
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero" data-title="Hero">
-      <div class="hero__sticky">
-        <div class="hero__bg" aria-hidden="true">
-          <video class="hero__bgvid" src="assets/waiting.mp4" autoplay loop muted playsinline preload="metadata"></video>
+      <div class="hero__sticky" id="heroSticky">
+        <div class="hero__bg" id="stageCard" aria-hidden="true">
+          <video class="stage__vid stage__vid--wait" id="waitVid" src="assets/waiting.mp4" autoplay loop muted playsinline preload="auto"></video>
+          <video class="stage__vid stage__vid--come" id="comeVid" src="assets/coming.mp4" muted playsinline preload="auto"></video>
           <div class="hero__veil"></div>
         </div>
 
         <div class="hero__grid container">
           <div class="hero__copy" id="heroCopy">
-            <p class="eyebrow"><span class="pulse"></span> Available for work · Philippines</p>
+            <p class="eyebrow"><span class="pulse"></span> <span data-i18n="hero.eyebrow">Available for work · Philippines</span></p>
             <h1 class="hero__title">
               <span class="line"><span>Ronel Pilo</span></span>
               <span class="line"><span><em>Fernandez</em></span></span>
             </h1>
-            <p class="hero__role">Full-Stack <b>Web</b> &amp; <b>Mobile</b> Software Developer</p>
-            <p class="hero__lead">Gumagawa ako ng malilinis, mabibilis, at maaasahang mga produkto — mula database hanggang pixel.</p>
+            <p class="hero__role" data-i18n-html="hero.role">Full-Stack <b>Web</b> &amp; <b>Game</b> Developer</p>
+            <p class="hero__lead" data-i18n="hero.lead">I build clean, fast, dependable products — from database to pixel.</p>
             <div class="hero__cta">
-              <a class="btn btn--primary" href="#projects">Tingnan ang mga gawa <span>→</span></a>
-              <a class="btn btn--ghost" href="#contact">Makipag-usap</a>
+              <a class="btn btn--primary" href="#projects"><i data-i18n="hero.cta1">See my work</i> <span>→</span></a>
+              <a class="btn btn--ghost" href="#contact" data-i18n="hero.cta2">Let's talk</a>
             </div>
-            <p class="hero__hint"><span class="mouse"></span> Igalaw ang mouse · mag-scroll at susunod siya</p>
-          </div>
-
-          <div class="hero__stage" id="heroStage">
-            <div class="stage__halo" aria-hidden="true"></div>
-            <div class="stage__card" id="stageCard">
-              <video class="stage__vid stage__vid--wait" id="waitVid" src="assets/waiting.mp4" autoplay loop muted playsinline preload="auto"></video>
-              <video class="stage__vid stage__vid--come" id="comeVid" src="assets/coming.mp4" muted playsinline preload="auto"></video>
-              <div class="stage__shine" aria-hidden="true"></div>
-              <span class="stage__tag stage__tag--a">&lt;/dev&gt;</span>
-              <span class="stage__tag stage__tag--b">v1.0 · live</span>
-            </div>
+            <p class="hero__hint"><span class="mouse"></span> <span data-i18n="hero.hint">Move your mouse · scroll and he follows</span></p>
           </div>
         </div>
 
@@ -99,33 +105,33 @@
       <div class="container about">
         <div class="about__media reveal">
           <div class="portrait">
-            <img src="assets/profile.jpg" alt="Larawan ni Ronel Pilo Fernandez" loading="lazy">
+            <img src="assets/profile.jpg" alt="Ronel Pilo Fernandez" loading="lazy" decoding="async">
           </div>
           <div class="glass about__badge">
-            <strong data-count="3">0</strong><span>taon<br>pag-aaral &amp; pagbuo</span>
+            <strong data-count="3">0</strong><span data-i18n-html="about.badge">years of<br>learning &amp; building</span>
           </div>
         </div>
         <div class="about__body">
-          <p class="kicker reveal">01 — About</p>
-          <h2 class="h2 reveal">Developer na mahilig sa <em>malinis na code</em> at maayos na karanasan.</h2>
-          <p class="lead reveal">Ako si <strong>Ronel Pilo Fernandez</strong>, isang web developer mula sa Pilipinas. Gusto kong bumuo ng responsive na mga website at app na madaling gamitin, at araw-araw akong natututo ng mga bagong teknolohiya.</p>
-          <p class="reveal">Kumportable ako sa buong stack — mula sa database at backend logic hanggang sa interface na nakikita ng user. Naniniwala ako na ang magandang software ay hindi lang gumagana: ramdam mo rin na pinag-isipan ito.</p>
+          <p class="kicker reveal" data-i18n="about.kicker">01 — About</p>
+          <h2 class="h2 reveal" data-i18n-html="about.h">A developer who loves <em>clean code</em> and thoughtful experiences.</h2>
+          <p class="lead reveal" data-i18n-html="about.lead">I'm <strong>Ronel Pilo Fernandez</strong>, a web developer from the Philippines. I like building responsive websites and apps that are easy to use, and I learn something new every day.</p>
+          <p class="reveal" data-i18n="about.p">I'm comfortable across the whole stack — from the database and backend logic to the interface users see. Good software doesn't just work; you can feel that someone cared.</p>
 
           <div class="stats reveal">
-            <div><strong data-count="2">0</strong><span>Mga proyekto</span></div>
-            <div><strong data-count="2">0</strong><span>Mga seminar</span></div>
-            <div><strong data-count="100" data-suffix="%">0</strong><span>Dedikasyon</span></div>
+            <div><strong data-count="2">0</strong><span data-i18n="stat.projects">Projects</span></div>
+            <div><strong data-count="2">0</strong><span data-i18n="stat.seminars">Seminars</span></div>
+            <div><strong data-count="100" data-suffix="%">0</strong><span data-i18n="stat.drive">Dedication</span></div>
           </div>
 
           <div class="timeline reveal">
-            <p class="kicker">Seminars Attended</p>
+            <p class="kicker" data-i18n="sem.title">Seminars Attended</p>
             <article>
-              <time>13 Hul 2024</time>
-              <div><h3>Google I/O Extended Manila</h3><p>Accenture Uptown Mall BGC Tower 2, Taguig</p></div>
+              <time data-i18n="sem1.date">Jul 13, 2024</time>
+              <div><h3 data-i18n="sem1.name">Google I/O Extended Manila</h3><p data-i18n="sem1.place">Accenture Uptown Mall BGC Tower 2, Taguig</p></div>
             </article>
             <article>
-              <time>24 May 2025</time>
-              <div><h3>Program and Developers Meetup</h3><p>Cyberzone, SM Makati</p></div>
+              <time data-i18n="sem2.date">May 24, 2025</time>
+              <div><h3 data-i18n="sem2.name">Program and Developers Meetup</h3><p data-i18n="sem2.place">Cyberzone, SM Makati</p></div>
             </article>
           </div>
         </div>
@@ -136,8 +142,8 @@
     <section class="section" id="projects" data-title="Works">
       <div class="container">
         <header class="section__head">
-          <p class="kicker reveal">02 — Selected Works</p>
-          <h2 class="h2 reveal">Mga proyektong <em>binuo ko</em>.</h2>
+          <p class="kicker reveal" data-i18n="works.kicker">02 — Selected Works</p>
+          <h2 class="h2 reveal" data-i18n-html="works.h">Projects I <em>built</em>.</h2>
         </header>
 
         <div class="works">
@@ -147,8 +153,8 @@
               <div class="mock"><i></i><i></i><i></i><b></b><b></b><b></b></div>
             </div>
             <div class="work__body">
-              <h3>Catering Booking System</h3>
-              <p>Kumpletong sistema para sa event reservations, pagpili ng menu, at admin management — mula booking hanggang kumpirmasyon.</p>
+              <h3 data-i18n="w1.t">Catering Booking System</h3>
+              <p data-i18n="w1.d">A complete system for event reservations, menu selection, and admin management — from booking to confirmation.</p>
               <ul class="tags"><li>PHP</li><li>MySQL</li><li>HTML</li><li>CSS</li></ul>
             </div>
             <span class="work__arrow" aria-hidden="true">↗</span>
@@ -160,8 +166,8 @@
               <div class="mock mock--b"><i></i><i></i><b></b><b></b></div>
             </div>
             <div class="work__body">
-              <h3>Interactive Portfolio</h3>
-              <p>Ang website na tinitingnan mo ngayon — static, mabilis, may chibi na tumutugon sa galaw mo, at command-palette navigation.</p>
+              <h3 data-i18n="w2.t">Interactive Portfolio</h3>
+              <p data-i18n="w2.d">The website you are viewing now — static, fast, with a chibi that reacts to your movement and command-palette navigation.</p>
               <ul class="tags"><li>HTML5</li><li>CSS3</li><li>JavaScript</li></ul>
             </div>
             <span class="work__arrow" aria-hidden="true">↗</span>
@@ -174,21 +180,21 @@
     <section class="section" id="skills" data-title="Skills">
       <div class="container">
         <header class="section__head">
-          <p class="kicker reveal">03 — Skills</p>
-          <h2 class="h2 reveal">Buong stack, <em>isang developer</em>.</h2>
+          <p class="kicker reveal" data-i18n="skills.kicker">03 — Skills</p>
+          <h2 class="h2 reveal" data-i18n-html="skills.h">Full stack, <em>one developer</em>.</h2>
         </header>
 
         <div class="skills">
           <div class="skillcard glass reveal">
-            <h3><span>◧</span> Frontend</h3>
+            <h3><span>◧</span> <i data-i18n="sk.front">Frontend</i></h3>
             <ul class="bars">
               <li><span>HTML5 / CSS3</span><i style="--w:90%"></i></li>
               <li><span>JavaScript</span><i style="--w:78%"></i></li>
-              <li><span>Responsive Design</span><i style="--w:88%"></i></li>
+              <li><span data-i18n="sk.resp">Responsive Design</span><i style="--w:88%"></i></li>
             </ul>
           </div>
           <div class="skillcard glass reveal">
-            <h3><span>◐</span> Backend &amp; Data</h3>
+            <h3><span>◐</span> <i data-i18n="sk.back">Backend &amp; Data</i></h3>
             <ul class="bars">
               <li><span>PHP</span><i style="--w:82%"></i></li>
               <li><span>MySQL</span><i style="--w:80%"></i></li>
@@ -196,11 +202,11 @@
             </ul>
           </div>
           <div class="skillcard glass reveal">
-            <h3><span>▣</span> Mobile &amp; Tools</h3>
+            <h3><span>▣</span> <i data-i18n="sk.mob">Mobile &amp; Tools</i></h3>
             <ul class="bars">
-              <li><span>Mobile Apps</span><i style="--w:60%"></i></li>
+              <li><span data-i18n="sk.mobile">Mobile Apps</span><i style="--w:60%"></i></li>
               <li><span>Git &amp; GitHub</span><i style="--w:72%"></i></li>
-              <li><span>XAMPP / Local Dev</span><i style="--w:85%"></i></li>
+              <li><span data-i18n="sk.local">XAMPP / Local Dev</span><i style="--w:85%"></i></li>
             </ul>
           </div>
         </div>
@@ -214,39 +220,104 @@
       </div>
     </section>
 
+    <!-- ============ RESUME (readable here, no download needed) ============ -->
+    <section class="section" id="resume" data-title="Resume">
+      <div class="container">
+        <header class="section__head resume__head">
+          <div>
+            <p class="kicker reveal" data-i18n="r.kicker">04 — Resume</p>
+            <h2 class="h2 reveal" data-i18n-html="r.h">My <em>resume</em>, at a glance.</h2>
+          </div>
+          <a class="btn btn--primary reveal" href="assets/Curriculum_Vitae.pdf" download="Ronel_Pilo_Fernandez_CV.pdf"><i data-i18n="r.dl">Download CV (PDF)</i> <span>↓</span></a>
+        </header>
+
+        <article class="cv glass reveal">
+          <header class="cv__top">
+            <h3>Ronel Pilo Fernandez</h3>
+            <p class="cv__role" data-i18n="r.title">Full Stack Web &amp; Game Developer</p>
+            <p class="cv__meta">Jasmin Street, Brgy II-F, San Pablo City, Laguna · +63 976 362 4496 · <a href="mailto:20ronel22@gmail.com">20ronel22@gmail.com</a></p>
+          </header>
+
+          <section class="cv__sec">
+            <h4 data-i18n="r.sumH">Professional Summary</h4>
+            <p data-i18n="r.sum">Motivated and detail-oriented Full Stack Developer with hands-on experience in building web applications, database management, and integrating third-party APIs such as payment gateways and AI assistants. Experienced in developing comprehensive management systems utilizing PHP, JavaScript, and MySQL.</p>
+          </section>
+
+          <section class="cv__sec">
+            <h4 data-i18n="r.skillsH">Technical Skills</h4>
+            <ul>
+              <li><b data-i18n="r.s1">Programming Languages:</b> PHP, JavaScript, HTML, CSS, C#, C++, Java</li>
+              <li><b data-i18n="r.s2">Web Development:</b> <span data-i18n="r.s2v">Frontend &amp; Backend Development, Database Management (SQL), RESTful Integrations</span></li>
+              <li><b data-i18n="r.s3">Tools &amp; Integrations:</b> Paymongo API, Tuqlas AI Assistant, <span data-i18n="r.s3v">SMTP Email Configurations</span></li>
+              <li><b data-i18n="r.s4">Soft Skills:</b> <span data-i18n="r.s4v">Analytical &amp; Problem-Solving, Keen Observer, Detail-Oriented Troubleshooting</span></li>
+            </ul>
+          </section>
+
+          <section class="cv__sec">
+            <h4 data-i18n="r.projH">Project Experience</h4>
+            <div class="cv__job">
+              <h5>Thelma's Catering System <small data-i18n="r.p1tag">(Full Stack Capstone Project)</small></h5>
+              <p class="cv__stack"><span data-i18n="r.stack">Tech Stack:</span> PHP, JavaScript, MySQL, HTML/CSS, Paymongo, Tuqlas AI, SMTP</p>
+              <ul>
+                <li data-i18n="r.p1a">Developed an online catering management system enabling clients to submit consultation inquiries, order food trays, and customize event packages.</li>
+                <li data-i18n="r.p1b">Integrated Paymongo API for secure online payment processing, tracking downpayments, and verifying transaction statuses.</li>
+                <li data-i18n="r.p1c">Embedded Tuqlas AI chatbot assistant to guide users and handle automated customer inquiries seamlessly.</li>
+                <li data-i18n="r.p1d">Configured automated notification workflows and secure SMTP server integrations for outbound email verifications and status updates.</li>
+              </ul>
+            </div>
+            <div class="cv__job">
+              <h5 data-i18n="r.p2t">Personal Portfolio &amp; Web Applications</h5>
+              <p class="cv__stack"><span data-i18n="r.stack">Tech Stack:</span> PHP, JavaScript, MySQL, HTML/CSS</p>
+              <ul>
+                <li data-i18n="r.p2a">Implemented secure SMTP server configurations and script integrations to handle automated outbound email delivery directly from user interactions.</li>
+                <li data-i18n="r.p2b">Designed automated contact handling systems, including dynamic resume/CV retrieval mechanisms via email requests.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cv__sec">
+            <h4 data-i18n="r.eduH">Education</h4>
+            <ul>
+              <li><b data-i18n="r.edu">Information and Communication Technology (ICT)</b> — STI College San Pablo <span class="cv__date">2020 – 2022</span></li>
+            </ul>
+          </section>
+        </article>
+      </div>
+    </section>
+
     <!-- ============ CONTACT ============ -->
     <section class="section section--contact" id="contact" data-title="Contact">
       <div class="container contact">
         <div class="contact__intro">
-          <p class="kicker reveal">04 — Contact</p>
-          <h2 class="h2 reveal">Gumawa tayo ng <em>something</em> magaling.</h2>
-          <p class="lead reveal">Bukas ako sa mga oportunidad, collaboration, at magagandang ideya. Magpadala ng mensahe at sasagot ako agad.</p>
+          <p class="kicker reveal" data-i18n="contact.kicker">05 — Contact</p>
+          <h2 class="h2 reveal" data-i18n-html="contact.h">Let's build something <em>great</em>.</h2>
+          <p class="lead reveal" data-i18n="contact.lead">I'm open to opportunities, collaborations, and good ideas. Send a message and I'll reply soon.</p>
 
           <ul class="contact__links reveal">
-            <li><span>Email</span><a href="mailto:mronel472@gmail.com">mronel472@gmail.com</a></li>
-            <li><span>Alternate</span><a href="mailto:20ronel22@gmail.com">20ronel22@gmail.com</a></li>
-            <li><span>Resume</span><a href="assets/Curriculum_Vitae.pdf" download>I-download ang CV ↓</a></li>
+            <li><span data-i18n="c.email">Email</span><a href="mailto:mronel472@gmail.com">mronel472@gmail.com</a></li>
+            <li><span data-i18n="c.alt">Alternate</span><a href="mailto:20ronel22@gmail.com">20ronel22@gmail.com</a></li>
+            <li><span data-i18n="c.resume">Resume</span><a href="assets/Curriculum_Vitae.pdf" download data-i18n="c.cv">Download CV ↓</a></li>
           </ul>
         </div>
 
         <form class="form glass reveal" id="contactForm" novalidate>
           <div class="field">
             <input type="text" id="cName" name="name" placeholder=" " required minlength="2" autocomplete="name">
-            <label for="cName">Pangalan</label>
+            <label for="cName" data-i18n="f.name">Name</label>
             <small class="err"></small>
           </div>
           <div class="field">
             <input type="email" id="cEmail" name="email" placeholder=" " required autocomplete="email">
-            <label for="cEmail">Email</label>
+            <label for="cEmail" data-i18n="f.email">Email</label>
             <small class="err"></small>
           </div>
           <div class="field">
             <textarea id="cMsg" name="message" rows="5" placeholder=" " required minlength="10"></textarea>
-            <label for="cMsg">Mensahe</label>
+            <label for="cMsg" data-i18n="f.msg">Message</label>
             <small class="err"></small>
           </div>
-          <button class="btn btn--primary btn--block" type="submit">Ipadala sa email <span>→</span></button>
-          <p class="form__note">Bubuksan nito ang iyong email app na may nakahandang mensahe — walang backend na kailangan.</p>
+          <button class="btn btn--primary btn--block" type="submit"><i data-i18n="f.send">Send via email</i> <span>→</span></button>
+          <p class="form__note" data-i18n="f.note">This opens your email app with the message prepared — no backend needed.</p>
         </form>
       </div>
 
@@ -261,6 +332,7 @@
     </section>
   </main>
 
+  <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
