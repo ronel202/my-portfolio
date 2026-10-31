@@ -13,6 +13,48 @@
 
   $('#year').textContent = new Date().getFullYear();
 
+  /* ==========================================================
+     LANGUAGE — gate shown on EVERY visit (nothing is remembered)
+     ========================================================== */
+  var DICT = window.I18N || {};
+  var lang = 'en';
+  function t(key) { return (DICT[lang] && DICT[lang][key]) || (DICT.en && DICT.en[key]) || key; }
+
+  function applyLang(l) {
+    if (!DICT[l]) l = 'en';
+    lang = l;
+    document.documentElement.lang = l === 'tl' ? 'fil' : l;
+    document.title = t('_title');
+    $$('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    $$('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.dataset.i18nHtml); });
+    $$('[data-i18n-ph]').forEach(function (el) { el.placeholder = t(el.dataset.i18nPh); });
+    $('#langCode').textContent = l.toUpperCase();
+    $$('.field.is-bad input, .field.is-bad textarea').forEach(function (i) { check(i); });
+    if (typeof renderPalette === 'function' && !$('#palette').hidden) renderPalette($('#paletteInput').value);
+    if (typeof refreshSectionLabel === 'function') refreshSectionLabel();
+  }
+
+  var gate = $('#langGate');
+  function openGate() {
+    gate.classList.remove('is-out');
+    document.body.classList.add('is-gated');
+    var guess = (navigator.language || 'en').toLowerCase().indexOf('fil') === 0 || (navigator.language || '').toLowerCase().indexOf('tl') === 0 ? 'tl' : 'en';
+    var first = $('[data-lang="' + guess + '"]', gate);
+    setTimeout(function () { if (first) first.focus(); }, 60);
+  }
+  function closeGate(l) {
+    applyLang(l);
+    gate.classList.add('is-out');
+    document.body.classList.remove('is-gated');
+    // translated text changes line wraps → refresh cached layout numbers
+    requestAnimationFrame(function () { measure(); cacheOffsets(); updateSection(); });
+  }
+  $$('.gate__opt', gate).forEach(function (b) {
+    b.addEventListener('click', function () { closeGate(b.dataset.lang); });
+  });
+  $('#langBtn').addEventListener('click', openGate);
+  openGate();
+
   /* ---------- Toast ---------- */
   var toastEl = $('#toast'), toastT;
   function toast(msg) {
@@ -65,15 +107,30 @@
   var waitVid = $('#waitVid'), comeVid = $('#comeVid'), copy = $('#heroCopy');
   var cur = { rx: 0, ry: 0, px: 0, py: 0, mx: 50, my: 0 };
   var scrubT = 0, scrubCur = 0, heroP = 0, ticking = false;
+  var heroSpan = 1, cardRect = { left: 0, top: 0, width: 1, height: 1 }, heroVisible = true, lastScrubSet = -1;
 
   if (reduce) { try { waitVid.pause(); } catch (e) {} }
 
-  function heroProgress() {
-    var span = hero.offsetHeight - innerHeight;
-    return clamp(window.scrollY / Math.max(1, span), 0, 1);
+  // measure once (and on resize) instead of every frame — avoids layout thrash
+  function measure() {
+    heroSpan = Math.max(1, hero.offsetHeight - innerHeight);
   }
+  function heroProgress() { return clamp(window.scrollY / heroSpan, 0, 1); }
+
+  // stop decoding video + the frame loop once the hero is off-screen
+  new IntersectionObserver(function (en) {
+    heroVisible = en[0].isIntersecting;
+    if (reduce) return;
+    if (heroVisible) { if (heroP <= 0.04) { var p = waitVid.play(); if (p && p.catch) p.catch(function () {}); } }
+    else waitVid.pause();
+    if (heroVisible) startLoop();
+  }).observe(hero);
+
+  var looping = false;
+  function startLoop() { if (!looping) { looping = true; requestAnimationFrame(heroFrame); } }
 
   function heroFrame(time) {
+    if (!heroVisible) { looping = false; return; }             // loop restarts via the observer
     var idleX = reduce ? 0 : Math.sin(time / 1700) * 0.28;   // subtle idle sway
     var idleY = reduce ? 0 : Math.cos(time / 2100) * 0.28;
 
@@ -84,24 +141,17 @@
     cur.px += ((mouse.nx + idleX) * -10 - cur.px) * 0.06;
     cur.py += ((mouse.ny + idleY) * -10 - cur.py) * 0.06;
 
-    var r = card.getBoundingClientRect();
-    var mx = clamp(((mouse.x - r.left) / r.width) * 100, 0, 100);
-    var my = clamp(((mouse.y - r.top) / r.height) * 100, 0, 100);
-    cur.mx += (mx - cur.mx) * 0.12;
-    cur.my += (my - cur.my) * 0.12;
 
-    card.style.setProperty('--rx', cur.rx.toFixed(2));
-    card.style.setProperty('--ry', (-cur.ry).toFixed(2));
     card.style.setProperty('--px', cur.px.toFixed(2));
     card.style.setProperty('--py', cur.py.toFixed(2));
-    card.style.setProperty('--mx', cur.mx.toFixed(1) + '%');
-    card.style.setProperty('--my', cur.my.toFixed(1) + '%');
 
     // scroll scrub of the "coming" clip
     if (comeVid.duration && isFinite(comeVid.duration)) {
       scrubCur += (scrubT - scrubCur) * 0.12;
       var want = scrubCur * (comeVid.duration - 0.05);
-      if (!comeVid.seeking && Math.abs(comeVid.currentTime - want) > 0.04) {
+      // seek only when needed: every seek forces a decode, so skip tiny / overlapping ones
+      if (!comeVid.seeking && Math.abs(want - lastScrubSet) > 0.06 && heroP > 0.04) {
+        lastScrubSet = want;
         try { comeVid.currentTime = want; } catch (e) {}
       }
     }
@@ -115,8 +165,6 @@
     // 0.04..0.92 of scroll maps across the whole clip
     scrubT = clamp((heroP - 0.04) / 0.88, 0, 1);
 
-    card.style.setProperty('--sc', (1 + heroP * 0.18).toFixed(3));
-    card.style.setProperty('--sy', (heroP * 40).toFixed(1));
     card.style.setProperty('--zoom', (1.04 + heroP * 0.1).toFixed(3));
     var fade = clamp(1 - heroP * 1.6, 0, 1);
     copy.style.opacity = fade;
@@ -131,7 +179,10 @@
     if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; onScroll(); updateSection(); }); }
   }, { passive: true });
   comeVid.addEventListener('loadedmetadata', function () { try { comeVid.pause(); } catch (e) {} });
-  requestAnimationFrame(heroFrame);
+  measure();
+  window.addEventListener('load', measure);
+  window.addEventListener('resize', function () { measure(); cacheOffsets(); onScroll(); });
+  startLoop();
   onScroll();
 
   /* ---------- Tilt cards ---------- */
@@ -151,49 +202,72 @@
      ========================================================== */
   var dock = $('#dock'), items = $$('.dock__item');
   if (!coarse && !reduce) {
+    var dockX = 0, dockQueued = false, centers = [];
+    function cacheCenters() { centers = items.map(function (it) { var r = it.getBoundingClientRect(); return r.left + r.width / 2; }); }
+    dock.addEventListener('pointerenter', cacheCenters);
     dock.addEventListener('pointermove', function (e) {
-      items.forEach(function (it) {
-        var r = it.getBoundingClientRect();
-        var d = Math.abs(e.clientX - (r.left + r.width / 2));
-        var s = 1 + Math.max(0, 1 - d / 110) * 0.55;
-        it.style.setProperty('--s', s.toFixed(3));
+      dockX = e.clientX;
+      if (dockQueued) return;
+      dockQueued = true;
+      requestAnimationFrame(function () {
+        dockQueued = false;
+        items.forEach(function (it, i) {
+          var s = 1 + Math.max(0, 1 - Math.abs(dockX - centers[i]) / 110) * 0.55;
+          it.style.setProperty('--s', s.toFixed(3));
+        });
       });
     });
     dock.addEventListener('pointerleave', function () { items.forEach(function (it) { it.style.removeProperty('--s'); }); });
   }
 
   var sections = $$('main > section');
-  var railFill = $('#railFill'), railLabel = $('#railLabel'), activeId = '';
+  var railFill = $('#railFill'), railLabel = $('#railLabel'), activeId = '', activeIdx = 0;
+  var tops = [], maxScroll = 1;
+  // cached so scrolling never reads layout (offsetTop/scrollHeight) on every event
+  function cacheOffsets() {
+    tops = sections.map(function (s) { return s.offsetTop; });
+    maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  }
+  function refreshSectionLabel() {
+    var key = ['nav.home', 'nav.about', 'nav.works', 'nav.skills', 'nav.resume', 'nav.contact'][activeIdx];
+    railLabel.textContent = '0' + (activeIdx + 1) + ' / ' + t(key);
+  }
   function updateSection() {
     var y = window.scrollY + innerHeight * 0.4, id = sections[0].id, idx = 0;
-    sections.forEach(function (s, i) { if (s.offsetTop <= y) { id = s.id; idx = i; } });
-    var max = document.documentElement.scrollHeight - innerHeight;
-    railFill.style.transform = 'scaleY(' + clamp(window.scrollY / Math.max(1, max), 0, 1).toFixed(3) + ')';
+    for (var i = 0; i < tops.length; i++) if (tops[i] <= y) { id = sections[i].id; idx = i; }
+    railFill.style.transform = 'scaleY(' + clamp(window.scrollY / maxScroll, 0, 1).toFixed(3) + ')';
     if (id === activeId) return;
-    activeId = id;
+    activeId = id; activeIdx = idx;
     items.forEach(function (it) { it.classList.toggle('is-active', it.dataset.section === id); });
-    railLabel.textContent = '0' + (idx + 1) + ' / ' + sections[idx].dataset.title;
+    refreshSectionLabel();
   }
+  cacheOffsets();
   updateSection();
-  window.addEventListener('resize', updateSection);
+  window.addEventListener('load', function () { cacheOffsets(); updateSection(); });
 
   /* ==========================================================
      COMMAND PALETTE (Ctrl/⌘ + K  or  "/")
      ========================================================== */
   var pal = $('#palette'), palInput = $('#paletteInput'), palList = $('#paletteList');
-  var commands = [
-    { g: 'Pumunta sa', ic: '⌂', t: 'Home',       k: 'hero home chibi',        a: function () { goTo('hero'); } },
-    { g: 'Pumunta sa', ic: '◐', t: 'About',      k: 'about ako seminar',      a: function () { goTo('about'); } },
-    { g: 'Pumunta sa', ic: '◧', t: 'Projects / Works', k: 'projects works gawa', a: function () { goTo('projects'); } },
-    { g: 'Pumunta sa', ic: '✦', t: 'Skills',     k: 'skills kakayahan stack', a: function () { goTo('skills'); } },
-    { g: 'Pumunta sa', ic: '✉', t: 'Contact',    k: 'contact makipag-usap form', a: function () { goTo('contact'); } },
-    { g: 'Mabilis na aksyon', ic: '↓', t: 'I-download ang CV', k: 'cv resume download pdf', h: 'PDF', a: function () {
-        var l = document.createElement('a'); l.href = 'assets/Curriculum_Vitae.pdf'; l.download = ''; l.click(); toast('Dina-download ang CV…'); } },
-    { g: 'Mabilis na aksyon', ic: '@', t: 'Mag-email',          k: 'email mail send',        h: EMAIL, a: function () { location.href = 'mailto:' + EMAIL; } },
-    { g: 'Mabilis na aksyon', ic: '⧉', t: 'Kopyahin ang email', k: 'copy email clipboard',   h: 'Copy', a: function () { copyText(EMAIL); } },
-    { g: 'Mabilis na aksyon', ic: '↗', t: 'GitHub',             k: 'github code repo',       a: function () { window.open('https://github.com/', '_blank', 'noopener'); } },
-    { g: 'Mabilis na aksyon', ic: '↗', t: 'LinkedIn',           k: 'linkedin network',       a: function () { window.open('https://linkedin.com/', '_blank', 'noopener'); } }
-  ];
+  function buildCommands() {
+    var G1 = t('pal.g1'), G2 = t('pal.g2'), G3 = t('pal.g3');
+    return [
+      { g: G1, ic: '⌂', t: t('nav.home'),    k: 'hero home chibi',           a: function () { goTo('hero'); } },
+      { g: G1, ic: '◐', t: t('nav.about'),   k: 'about ako seminar',         a: function () { goTo('about'); } },
+      { g: G1, ic: '◧', t: t('pal.works'),   k: 'projects works gawa',       a: function () { goTo('projects'); } },
+      { g: G1, ic: '✦', t: t('nav.skills'),  k: 'skills kakayahan stack',    a: function () { goTo('skills'); } },
+      { g: G1, ic: '▤', t: t('nav.resume'),  k: 'resume cv view',            a: function () { goTo('resume'); } },
+      { g: G1, ic: '✉', t: t('nav.contact'), k: 'contact makipag-usap form', a: function () { goTo('contact'); } },
+      { g: G2, ic: '↓', t: t('pal.cv'),      k: 'cv resume download pdf', h: 'PDF', a: function () {
+          var l = document.createElement('a'); l.href = 'assets/Curriculum_Vitae.pdf'; l.download = ''; l.click(); toast(t('toast.cv')); } },
+      { g: G2, ic: '@', t: t('pal.mail'),    k: 'email mail send',      h: EMAIL, a: function () { location.href = 'mailto:' + EMAIL; } },
+      { g: G2, ic: '⧉', t: t('pal.copy'),    k: 'copy email clipboard', h: 'Copy', a: function () { copyText(EMAIL); } },
+      { g: G2, ic: '↗', t: 'GitHub',          k: 'github code repo',     a: function () { window.open('https://github.com/', '_blank', 'noopener'); } },
+      { g: G2, ic: '↗', t: 'LinkedIn',        k: 'linkedin network',     a: function () { window.open('https://linkedin.com/', '_blank', 'noopener'); } },
+      { g: G3, ic: 'A', t: t('pal.lang'),    k: 'language wika english filipino tagalog translate', h: lang.toUpperCase(), a: openGate }
+    ];
+  }
+  var commands = buildCommands();
   var shown = [], sel = 0, lastFocus = null;
 
   function goTo(id) {
@@ -203,17 +277,18 @@
     else window.scrollTo({ top: el.offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
   }
   function copyText(txt) {
-    var done = function () { toast('Nakopya: ' + txt); };
+    var done = function () { toast(t('toast.copied') + txt); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, done);
     else done();
   }
 
   function renderPalette(q) {
     q = (q || '').trim().toLowerCase();
+    commands = buildCommands();
     shown = commands.filter(function (c) { return !q || (c.t + ' ' + c.k).toLowerCase().indexOf(q) > -1; });
     sel = 0;
     palList.innerHTML = '';
-    if (!shown.length) { palList.innerHTML = '<li class="palette__empty">Walang nahanap para sa “' + q.replace(/[<>&]/g, '') + '”</li>'; return; }
+    if (!shown.length) { palList.innerHTML = '<li class="palette__empty">' + t('pal.none') + ' “' + q.replace(/[<>&]/g, '') + '”</li>'; return; }
     var lastG = '';
     shown.forEach(function (c, i) {
       if (c.g !== lastG) { var g = document.createElement('li'); g.className = 'palette__group'; g.textContent = c.g; palList.appendChild(g); lastG = c.g; }
@@ -250,6 +325,10 @@
   pal.addEventListener('click', function (e) { if (e.target.hasAttribute('data-close')) closePalette(); });
   palInput.addEventListener('input', function () { renderPalette(palInput.value); });
   document.addEventListener('keydown', function (e) {
+    if (!gate.classList.contains('is-out')) {            // language gate owns the keyboard while open
+      if (e.key === 'Escape') closeGate(lang);
+      return;
+    }
     var typing = /input|textarea/i.test((e.target.tagName || ''));
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); pal.hidden ? openPalette() : closePalette(); return; }
     if (e.key === '/' && !typing && pal.hidden) { e.preventDefault(); openPalette(); return; }
@@ -278,9 +357,9 @@
      ========================================================== */
   var form = $('#contactForm');
   var rules = {
-    name:    function (v) { return v.trim().length >= 2 ? '' : 'Ilagay ang iyong pangalan (min. 2 letra).'; },
-    email:   function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Maglagay ng wastong email address.'; },
-    message: function (v) { return v.trim().length >= 10 ? '' : 'Medyo maikli — hindi bababa sa 10 karakter.'; }
+    name:    function (v) { return v.trim().length >= 2 ? '' : t('v.name'); },
+    email:   function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : t('v.email'); },
+    message: function (v) { return v.trim().length >= 10 ? '' : t('v.msg'); }
   };
   function check(input) {
     var msg = rules[input.name](input.value), f = input.closest('.field');
@@ -301,7 +380,7 @@
     var subject = 'Portfolio inquiry from ' + d.name;
     var body = d.message + '\n\n— ' + d.name + ' (' + d.email + ')';
     location.href = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-    toast('Binubuksan ang iyong email app…');
+    toast(t('toast.mail'));
     form.reset();
   });
 })();
