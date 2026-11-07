@@ -185,6 +185,25 @@
   startLoop();
   onScroll();
 
+  /* ---------- Live project previews (iframes) ----------
+     scaled to fit the card, and only loaded while on screen so their
+     animations/timers don't cost anything when you're elsewhere */
+  var previews = $$('.work__art--preview');
+  function scalePreviews() {
+    previews.forEach(function (box) { box.style.setProperty('--s', (box.clientWidth / 1280).toFixed(4)); });
+  }
+  scalePreviews();
+  if (window.ResizeObserver) { var previewRO = new ResizeObserver(scalePreviews); previews.forEach(function (b) { previewRO.observe(b); }); }
+  else window.addEventListener('resize', scalePreviews);
+  var previewIO = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      var f = $('iframe', en.target);
+      if (en.isIntersecting) { if (f.dataset.on !== '1') { f.dataset.on = '1'; f.src = f.dataset.src; } }
+      else if (f.dataset.on === '1') { f.dataset.on = '0'; f.src = 'about:blank'; }   // unload page + timers
+    });
+  }, { rootMargin: '200px 0px' });
+  previews.forEach(function (box) { previewIO.observe(box); });
+
   /* ---------- Tilt cards ---------- */
   if (!coarse && !reduce) {
     $$('.tilt').forEach(function (el) {
