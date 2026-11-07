@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Student ID & Replacement Backup System</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              primary: 'var(--brand-primary, #0052cc)',
+              secondary: 'var(--brand-secondary, #ffab00)',
+              accent: 'var(--brand-accent, #00b8d9)',
+              bg: 'var(--brand-bg, #090d16)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --brand-primary: #0056B3;
+      --brand-secondary: #FFC107;
+      --brand-accent: #00D2FF;
+      --brand-bg: #090D16;
+      --brand-name: 'STI College';
+      --brand-code: 'STI';
+    }
+
+    body {
+      background-color: #05070d;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* 3D Card Flip Styling */
+    .id-card-scene {
+      perspective: 1200px;
+    }
+    .id-card-object {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .id-card-object.is-flipped {
+      transform: rotateY(180deg);
+    }
+    .id-card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 1.5rem;
+      overflow: hidden;
+    }
+    .id-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Glassmorphism Styles */
+    .glass-card {
+      background: rgba(18, 26, 43, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
+
+  <!-- ================= TOP NAVIGATION ================= -->
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-id-badge text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">Virtual Student ID System</h1>
+            <span class="text-[10px] uppercase font-extrabold tracking-widest px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Temporary Access</span>
+          </div>
+          <p class="text-xs text-slate-400">Digital Student ID Backup & Replacement Workflow</p>
+        </div>
+      </div>
+
+      <!-- Role Switcher -->
+      <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <button id="nav-student" onclick="switchView('student')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition bg-blue-600 text-white shadow-md shadow-blue-600/30 cursor-pointer">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>1. Student App</span>
+        </button>
+        <button id="nav-finder" onclick="switchView('finder')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer">
+          <i class="fa-solid fa-qrcode"></i>
+          <span>2. Public Finder Scan</span>
+        </button>
+        <button id="nav-admin" onclick="switchView('admin')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>3. Registrar Manager</span>
+        </button>
+      </div>
+
+      <!-- Tenant Selector -->
+      <div class="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+        <span class="text-xs text-slate-400 font-medium hidden md:inline">Institution:</span>
+        <select id="tenantSelect" onchange="changeTenant(this.value)" class="bg-slate-950 text-xs font-bold text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-blue-500 cursor-pointer">
+          <option value="sti">STI College (@sti.edu.ph)</option>
+          <option value="ama">AMA University (@ama.edu.ph)</option>
+          <option value="pup">Polytechnic Univ PH (@pup.edu.ph)</option>
+        </select>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <!-- ================= VIEW 1: STUDENT MOBILE VIEW ================= -->
+    <section id="view-student" class="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
+      
+      <!-- Mobile Phone Outer Frame -->
+      <div class="relative w-full max-w-[390px] h-[830px] bg-slate-900 rounded-[50px] p-4 border-[6px] border-slate-800 shadow-2xl shadow-blue-950/40 flex flex-col overflow-hidden">
+        
+        <!-- Phone Camera Notch -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-slate-800 rounded-b-2xl z-40 flex items-center justify-center">
+          <div class="w-12 h-1.5 bg-slate-900 rounded-full mr-2"></div>
+          <div class="w-3 h-3 bg-slate-950 rounded-full border border-slate-800"></div>
+        </div>
+
+        <!-- Phone Inner Screen -->
+        <div class="relative w-full h-full bg-slate-950 rounded-[38px] overflow-hidden flex flex-col pt-6 font-sans">
+          
+          <!-- App Header -->
+          <div class="px-5 pt-3 pb-2 flex items-center justify-between border-b border-white/10 bg-slate-950/60 backdrop-blur-md">
+            <div class="flex items-center space-x-2">
+              <span id="institutionLogoBadge" class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-slate-950 shadow" style="background-color: var(--brand-secondary);">
+                <i class="fa-solid fa-university"></i>
+              </span>
+              <div>
+                <h2 id="institutionNameDisplay" class="text-xs font-bold text-white tracking-wide uppercase">STI College</h2>
+                <span class="text-[9px] font-mono text-emerald-400 block -mt-0.5">● DIGITAL STUDENT ID SYSTEM</span>
+              </div>
+            </div>
+
+            <!-- Clickable Verification Status Badge -->
+            <button id="verificationToggleBtn" onclick="toggleVerificationState()" class="px-2.5 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-full text-[9px] font-bold shadow flex items-center space-x-1 cursor-pointer hover:scale-105 transition">
+              <i id="verificationToggleIcon" class="fa-solid fa-circle-check"></i>
+              <span id="verificationToggleText">Verified</span>
+            </button>
+          </div>
+
+          <!-- Quick Interactive Testing Bar -->
+          <div class="px-4 py-1.5 flex items-center justify-between gap-2 bg-slate-900/90 border-b border-slate-800">
+            <span class="text-[9px] font-mono text-slate-400 font-bold uppercase">Toggle Status:</span>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="setVerificationState(true)" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] font-extrabold rounded-md shadow flex items-center space-x-1 cursor-pointer">
+                <i class="fa-solid fa-check-circle"></i>
+                <span>Verified</span>
+              </button>
+              <button onclick="setVerificationState(false)" class="px-2 py-0.5 bg-red-600 hover:bg-red-500 text-white text-[9px] font-extrabold rounded-md shadow flex items-center space-x-1 cursor-pointer">
+                <i class="fa-solid fa-lock"></i>
+                <span>Not Verified</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Phone Scrollable Body -->
+          <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+
+            <!-- SUB TAB 1: VIRTUAL STUDENT ID (ISOLATED FROM REQUEST TRACKER) -->
+            <div id="subtab-virtualId" class="space-y-4">
+              
+              <!-- VERIFIED STATE UI (3D Flippable Student ID Card) -->
+              <div id="verifiedIdWrapper" class="space-y-3">
+                
+                <div class="flex items-center justify-between px-1">
+                  <span class="text-[10px] font-mono text-emerald-400 uppercase font-bold">● VERIFIED — VIRTUAL STUDENT ID</span>
+                  <button onclick="flipCard()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-full font-bold shadow cursor-pointer">
+                    <i class="fa-solid fa-rotate mr-1"></i> <span id="flipBtnText">Flip ID Card</span>
+                  </button>
+                </div>
+
+                <!-- 3D FLIPPABLE VIRTUAL STUDENT ID -->
+                <div class="id-card-scene w-full h-[410px]">
+                  <div id="virtualIdCard" class="id-card-object">
+                    
+                    <!-- FRONT SIDE -->
+                    <div class="id-card-face glass-card p-5 border border-white/20 flex flex-col justify-between shadow-2xl">
+                      <div class="absolute top-0 left-0 right-0 h-2" style="background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));"></div>
+
+                      <div class="flex items-center justify-between pt-1 pb-2 border-b border-white/10">
+                        <div>
+                          <span class="text-[9px] font-mono uppercase text-slate-400">STUDENT TEMPORARY IDENTIFICATION</span>
+                          <h3 id="cardHeaderTitle" class="text-sm font-extrabold text-white tracking-wide">STI COLLEGE MANILA</h3>
+                        </div>
+                        <span class="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">ENROLLED</span>
+                      </div>
+
+                      <div class="flex items-center space-x-4 my-2">
+                        <div class="relative">
+                          <div class="w-24 h-24 rounded-2xl overflow-hidden border-2 p-0.5 shadow-lg" style="border-color: var(--brand-secondary);">
+                            <img id="cardPhoto" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="Student Photo" class="w-full h-full object-cover rounded-xl" />
+                          </div>
+                          <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white">
+                            <i class="fa-solid fa-check"></i>
+                          </span>
+                        </div>
+
+                        <div class="flex-1 space-y-1">
+                          <h3 id="cardStudentName" class="text-base font-extrabold text-white leading-tight">Samantha Reyes</h3>
+                          <p id="cardStudentId" class="text-xs font-mono font-bold text-amber-400">2026-08941-MN-0</p>
+                          <p id="cardCourse" class="text-[11px] text-slate-300 font-medium">BS Computer Science</p>
+                          <p id="cardYear" class="text-[10px] text-slate-400">3rd Year • Transferee / Backup</p>
+                        </div>
+                      </div>
+
+                      <div class="bg-slate-950/80 p-2.5 rounded-xl border border-white/10 flex items-center justify-between">
+                        <div>
+                          <span class="text-[9px] font-mono text-emerald-400 block">REAL-TIME ANTI-SPOOF FEED</span>
+                          <div id="cardLiveClock" class="font-mono text-xs font-extrabold text-white">00:00:00.000</div>
+                        </div>
+                        <button onclick="flipCard()" class="text-[10px] text-blue-400 hover:underline flex items-center font-bold cursor-pointer">
+                          <i class="fa-solid fa-qrcode mr-1"></i> View Back
+                        </button>
+                      </div>
+
+                      <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                        <span>ISSUED BY: REGISTRAR OFFICE</span>
+                        <span class="text-slate-300 font-bold"><i class="fa-solid fa-hand-pointer text-blue-400 mr-1"></i> TAP TO FLIP</span>
+                      </div>
+                    </div>
+
+                    <!-- BACK SIDE -->
+                    <div class="id-card-face id-card-back glass-card p-5 border border-white/20 flex flex-col justify-between shadow-2xl bg-slate-950">
+                      <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                        <span class="text-[10px] font-mono font-bold text-amber-400 uppercase">STUDENT ID BACK — EMERGENCY & GPS QR</span>
+                        <button onclick="flipCard()" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded cursor-pointer">
+                          <i class="fa-solid fa-rotate-left mr-1"></i> Front
+                        </button>
+                      </div>
+
+                      <div class="space-y-2 text-xs">
+                        <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span class="text-[9px] font-bold text-slate-400 uppercase block">In Case of Emergency Contact:</span>
+                          <p id="cardGuardianName" class="font-bold text-white">Maria Reyes (Mother)</p>
+                          <p id="cardGuardianPhone" class="font-mono text-blue-400 font-semibold">+63 917 555 0192</p>
+                        </div>
+
+                        <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span class="text-[9px] font-bold text-slate-400 uppercase block">Registered Home Address:</span>
+                          <p id="cardHomeAddress" class="text-slate-200 text-[11px] font-medium leading-snug">#42 Katipunan Ave, Brgy. Loyola Heights, Quezon City</p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center space-x-3 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                        <div class="bg-white p-1.5 rounded-lg shadow flex items-center justify-center">
+                          <div id="cardBackQrCode" class="w-16 h-16 flex items-center justify-center overflow-hidden"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <span class="text-[9px] font-bold text-slate-400 uppercase block">Finder GPS Pin QR</span>
+                          <p class="text-[9px] text-slate-300 font-mono truncate">14.6488° N, 121.0741° E</p>
+                          <button onclick="switchView('finder')" class="mt-1 w-full py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] rounded-lg shadow cursor-pointer">
+                            <i class="fa-solid fa-map-location-dot mr-1"></i> Test Finder Scan
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="text-center text-[9px] font-mono text-slate-500">
+                        Property of STI College. Scan QR to contact guardian if found.
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- UNVERIFIED STATE UI (No Virtual ID Generated + Center Verify Button) -->
+              <div id="unverifiedIdWrapper" class="hidden glass-card p-6 my-auto rounded-3xl text-center space-y-4 border-red-500/40 bg-slate-950/90 shadow-2xl flex flex-col justify-center items-center min-h-[380px]">
+                <div class="w-20 h-20 rounded-3xl bg-red-500/10 text-red-400 flex items-center justify-center text-4xl shadow-lg border border-red-500/20 mb-1">
+                  <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                  <h3 class="text-lg font-extrabold text-white tracking-tight">ACCOUNT NOT VERIFIED</h3>
+                  <span class="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-extrabold bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
+                    Virtual Student ID Locked
+                  </span>
+                  <p class="text-xs text-slate-400 mt-2 max-w-xs leading-relaxed">
+                    No Virtual Student ID is displayed because your account is currently unverified. Please attach your official Registration Form (Form 5) to activate your account.
+                  </p>
+                </div>
+
+                <!-- CENTERED VERIFY ACCOUNT BUTTON -->
+                <button onclick="openEnrollmentModal()" class="w-full py-3.5 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-2xl shadow-xl hover:shadow-blue-500/25 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 cursor-pointer border border-blue-400/30">
+                  <i class="fa-solid fa-file-circle-check text-base"></i>
+                  <span class="tracking-wider uppercase">Verify Your Account</span>
+                </button>
+
+                <div class="pt-2 text-[10px] text-slate-500 font-mono">
+                  <i class="fa-solid fa-circle-info mr-1 text-amber-400"></i> Upload Form 5 / Certificate of Matriculation
+                </div>
+              </div>
+
+            </div>
+
+            <!-- SUB TAB 2: REQUEST PHYSICAL ID TRACKER (SEPARATED) -->
+            <div id="subtab-requestPhysical" class="hidden space-y-4">
+              <div class="glass-card rounded-2xl p-4 border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-white flex items-center">
+                      <i class="fa-solid fa-print text-blue-400 mr-2"></i> Physical Student ID Card Request
+                    </h4>
+                    <p class="text-[10px] text-slate-400">Track replacement card printing progress</p>
+                  </div>
+                  <button onclick="openReplacementModal()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-lg shadow cursor-pointer">
+                    + New Request
+                  </button>
+                </div>
+
+                <!-- Progress Steps -->
+                <div class="grid grid-cols-4 gap-1 text-center font-mono text-[9px] pt-1">
+                  <div class="space-y-1">
+                    <div class="w-6 h-6 mx-auto rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center">1</div>
+                    <span class="text-emerald-400 block">Submitted</span>
+                  </div>
+                  <div class="space-y-1">
+                    <div id="step2Icon" class="w-6 h-6 mx-auto rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">2</div>
+                    <span id="step2Text" class="text-blue-400 block font-bold">Review</span>
+                  </div>
+                  <div class="space-y-1">
+                    <div id="step3Icon" class="w-6 h-6 mx-auto rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center">3</div>
+                    <span id="step3Text" class="text-slate-500 block">Printing</span>
+                  </div>
+                  <div class="space-y-1">
+                    <div id="step4Icon" class="w-6 h-6 mx-auto rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center">4</div>
+                    <span id="step4Text" class="text-slate-500 block">Ready</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Phone Nav Tabs -->
+          <div class="bg-slate-950/90 border-t border-white/10 px-6 py-2 flex items-center justify-around text-slate-400 text-xs">
+            <button id="tabBtn-virtualId" onclick="switchStudentSubTab('virtualId')" class="flex flex-col items-center space-y-0.5 text-blue-400 cursor-pointer">
+              <i class="fa-solid fa-id-card text-sm"></i>
+              <span class="text-[9px] font-bold">Virtual ID</span>
+            </button>
+            <button id="tabBtn-requestPhysical" onclick="switchStudentSubTab('requestPhysical')" class="flex flex-col items-center space-y-0.5 hover:text-white transition cursor-pointer">
+              <i class="fa-solid fa-print text-sm"></i>
+              <span class="text-[9px] font-semibold">Request Card</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Feature Info Panel -->
+      <div class="flex-1 max-w-lg space-y-5">
+        <div class="glass-card rounded-3xl p-6 border-slate-800">
+          <h2 class="text-lg font-bold text-white flex items-center mb-2">
+            <i class="fa-solid fa-shield-cat text-blue-400 mr-2"></i> Separated Modules & Verification Flow
+          </h2>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            The Virtual Student ID is completely separated from the Physical ID replacement request tracker. Clicking the top status badge or using the testing buttons switches between Verified and Unverified states.
+          </p>
+
+          <div class="mt-4 space-y-3 text-xs">
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+              <h4 class="font-bold text-white flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i> Clickable Verified / Unverified State
+              </h4>
+              <p class="text-slate-400 text-[11px] mt-0.5">When Unverified, no virtual ID card is displayed. Clicking "Verify Your Account" opens the Form 5 attachment modal.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= VIEW 2: PUBLIC FINDER SCANNER VIEW ================= -->
+    <section id="view-finder" class="hidden w-full max-w-3xl mx-auto space-y-6">
+      
+      <div class="glass-card rounded-3xl p-6 border-amber-500/40 bg-slate-900/90 shadow-2xl space-y-5">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">
+              <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-extrabold">PUBLIC EMERGENCY SCANNER</span>
+              <h2 class="text-lg font-bold text-white">Scanned Student Emergency Profile</h2>
+            </div>
+          </div>
+          <button onclick="switchView('student')" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Student App
+          </button>
+        </div>
+
+        <!-- Student Summary & Emergency Contacts (Map Removed for Privacy) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col items-center text-center">
+            <img id="finderPhoto" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" class="w-24 h-24 rounded-full object-cover border-2 border-amber-500 mb-2 shadow-lg" />
+            <h3 id="finderName" class="font-extrabold text-white text-base">Samantha Reyes</h3>
+            <p id="finderId" class="text-xs font-mono text-amber-400 font-bold">2026-08941-MN-0</p>
+            <p id="finderCourse" class="text-xs text-slate-400 mt-1">BS Computer Science (3rd Year)</p>
+            <span class="mt-2 text-[10px] font-bold px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">ENROLLED STUDENT</span>
+          </div>
+
+          <div class="md:col-span-2 space-y-3">
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
+              <h4 class="font-bold text-amber-300 uppercase tracking-wider text-[10px] flex items-center">
+                <i class="fa-solid fa-phone text-blue-400 mr-2"></i> Emergency Guardian Contact
+              </h4>
+              <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl">
+                <div>
+                  <p id="finderGuardian" class="font-bold text-white">Maria Reyes (Mother)</p>
+                  <p class="text-slate-400 text-[11px]">Primary Contact</p>
+                </div>
+                <a id="finderPhoneCallBtn" href="tel:+639175550192" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center">
+                  <i class="fa-solid fa-phone mr-1.5"></i> Call Guardian
+                </a>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs space-y-2">
+              <h4 class="font-bold text-amber-300 uppercase tracking-wider text-[10px] flex items-center">
+                <i class="fa-solid fa-shield-halved text-emerald-400 mr-2"></i> Privacy Notice & Security Protocol
+              </h4>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                For student privacy and physical safety, home GPS location mapping has been disabled. If found, please contact the emergency guardian above or surrender this virtual ID pass to the university registrar.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= VIEW 3: REGISTRAR CARD REQUEST MANAGER ================= -->
+    <section id="view-admin" class="hidden w-full space-y-6">
+      <div class="glass-card rounded-3xl p-6 border-slate-800 space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center">
+              <i class="fa-solid fa-print text-blue-400 mr-2"></i> Registrar Physical Student ID Printing Manager
+            </h2>
+            <p class="text-xs text-slate-400">Review replacement requests for Lost, Damaged, or New Enrollee physical Student IDs</p>
+          </div>
+          <span class="text-xs font-mono px-3 py-1 bg-blue-500/20 text-blue-300 rounded-xl border border-blue-500/30">
+            PENDING PRINT REQUESTS: 1
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="p-3">Student Name & ID</th>
+                <th class="p-3">Enrollment Form</th>
+                <th class="p-3">Request Reason</th>
+                <th class="p-3">Pickup Campus</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300">
+              <tr class="hover:bg-slate-900/50">
+                <td class="p-3 font-semibold text-white">
+                  <div>Samantha Reyes</div>
+                  <span class="font-mono text-slate-400 text-[10px]">2026-08941-MN-0</span>
+                </td>
+                <td class="p-3">
+                  <span class="text-emerald-400 font-mono flex items-center"><i class="fa-solid fa-check-circle mr-1"></i> Form 5 Attached</span>
+                </td>
+                <td class="p-3">
+                  <span id="adminRequestReason" class="px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    Lost Physical Student ID
+                  </span>
+                </td>
+                <td class="p-3 text-slate-300">STI Manila Campus</td>
+                <td class="p-3">
+                  <span id="adminStatusTag" class="px-2 py-0.5 rounded font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    REVIEWING
+                  </span>
+                </td>
+                <td class="p-3 text-right space-x-2">
+                  <button onclick="updateRequestProgress(3)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition text-[10px] cursor-pointer">
+                    <i class="fa-solid fa-print mr-1"></i> Send to Printing
+                  </button>
+                  <button onclick="updateRequestProgress(4)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition text-[10px] cursor-pointer">
+                    <i class="fa-solid fa-check mr-1"></i> Ready for Pickup
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= ENROLLMENT VERIFICATION MODAL (FORM 5 ATTACHMENT) ================= -->
+  <div id="enrollmentModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-card max-w-lg w-full rounded-3xl p-6 border-slate-700 shadow-2xl relative">
+      
+      <button onclick="closeEnrollmentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4 border-b border-slate-800 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold shadow">
+          <i class="fa-solid fa-file-circle-check text-xl"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-base">Student Enrolment Verification</h3>
+          <p class="text-xs text-slate-400">Attach Certificate of Matriculation (Form 5) to activate Virtual ID</p>
+        </div>
+      </div>
+
+      <form onsubmit="submitEnrollmentVerification(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Select Semester & Academic Year</label>
+          <select class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
+            <option>2nd Semester, AY 2025-2026 (Enrolled)</option>
+            <option>1st Semester, AY 2025-2026 (Enrolled)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Attach Registration Form / Form 5 Document</label>
+          <div class="bg-slate-950 border-2 border-dashed border-slate-800 rounded-xl p-5 text-center cursor-pointer hover:border-blue-500/50 transition">
+            <i class="fa-solid fa-file-arrow-up text-3xl text-blue-400 mb-2"></i>
+            <p class="text-slate-200 font-bold">Click to upload official Form 5 / Matriculation Form</p>
+            <p class="text-[10px] text-slate-500 mt-1">Accepted: PDF, PNG, JPG (Must show Registrar "Enrolled" stamp)</p>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition cursor-pointer">
+          <i class="fa-solid fa-check-double mr-1.5"></i> Submit for Verification & Unlock Virtual ID
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ================= PHYSICAL ID REPLACEMENT REQUEST MODAL ================= -->
+  <div id="replacementModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-card max-w-lg w-full rounded-3xl p-6 border-slate-700 shadow-2xl relative">
+      
+      <button onclick="closeReplacementModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4 border-b border-slate-800 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold shadow">
+          <i class="fa-solid fa-id-card-clip text-xl"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-base">Request Physical Student ID Printing</h3>
+          <p class="text-xs text-slate-400">For Lost Student IDs, Damaged Cards, or New Enrollee First Cards</p>
+        </div>
+      </div>
+
+      <form onsubmit="submitReplacementRequest(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Reason for Request</label>
+          <select id="requestReasonSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-500">
+            <option value="Lost Physical Student ID">Lost Physical Student ID Card</option>
+            <option value="New Enrollee / Transferee">New Enrollee / Transferee (First Card)</option>
+            <option value="Damaged Card Replacement">Damaged Physical Student ID Card</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Attach Affidavit of Loss / Form 5</label>
+          <div class="bg-slate-950 border-2 border-dashed border-slate-800 rounded-xl p-4 text-center cursor-pointer hover:border-amber-500/50 transition">
+            <i class="fa-solid fa-file-arrow-up text-2xl text-amber-400 mb-1"></i>
+            <p class="text-slate-300 font-semibold">Affidavit of Loss or Registration Form</p>
+            <p class="text-[10px] text-slate-500">Attach PDF or Image file (Max 5MB)</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Preferred Campus Registrar Pickup Office</label>
+          <select class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-amber-500">
+            <option>STI College Manila Campus Registrar</option>
+            <option>STI College Global City</option>
+            <option>STI College Quezon City</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition cursor-pointer">
+          <i class="fa-solid fa-paper-plane mr-1.5"></i> Submit Replacement Card Request
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 glass-card px-4 py-3 rounded-2xl border-blue-500/50 shadow-2xl flex items-center space-x-3 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+      <i class="fa-solid fa-bell"></i>
+    </div>
+    <div>
+      <h4 id="toastTitle" class="text-xs font-bold text-white">Notification</h4>
+      <p id="toastMessage" class="text-[11px] text-slate-300">Action performed.</p>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+    const state = {
+      activeView: 'student',
+      activeSubTab: 'virtualId',
+      activeTenant: 'sti',
+      isFlipped: false,
+      isVerified: true,
+      mapInitialized: false,
+      leafletMap: null,
+      leafletMarker: null,
+      studentData: {
+        name: 'Samantha Reyes',
+        id: '2026-08941-MN-0',
+        course: 'BS Computer Science',
+        year: '3rd Year',
+        reason: 'Lost Physical Student ID',
+        guardian: 'Maria Reyes (Mother)',
+        phone: '+63 917 555 0192',
+        address: '#42 Katipunan Ave, Brgy. Loyola Heights, Quezon City, Metro Manila',
+        lat: 14.6488,
+        lng: 121.0741,
+        photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80'
+      },
+      tenants: {
+        sti: { name: 'STI College', primary: '#0056B3', secondary: '#FFC107' },
+        ama: { name: 'AMA University', primary: '#CC0000', secondary: '#00D2FF' },
+        pup: { name: 'Polytechnic Univ PH', primary: '#800000', secondary: '#D4AF37' }
+      }
+    };
+
+    window.onload = function() {
+      startMillisecondClock();
+      initBackQrCode();
+      updateVerificationUI();
+    };
+
+    /* 3D Card Flip Handler */
+    function flipCard() {
+      if (!state.isVerified) return;
+      state.isFlipped = !state.isFlipped;
+      const card = document.getElementById('virtualIdCard');
+      const btnText = document.getElementById('flipBtnText');
+
+      if (state.isFlipped) {
+        card.classList.add('is-flipped');
+        if(btnText) btnText.innerText = 'Show Front';
+      } else {
+        card.classList.remove('is-flipped');
+        if(btnText) btnText.innerText = 'Flip ID Card';
+      }
+    }
+
+    /* Millisecond Security Clock */
+    function startMillisecondClock() {
+      const clockEl = document.getElementById('cardLiveClock');
+      function update() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const ms = String(now.getMilliseconds()).padStart(3, '0');
+        if (clockEl) clockEl.innerText = `${hours}:${minutes}:${seconds}.${ms}`;
+        requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    /* Initialize QR Code for Back of ID */
+    function initBackQrCode() {
+      const container = document.getElementById('cardBackQrCode');
+      if (!container) return;
+      container.innerHTML = '';
+      try {
+        new QRCode(container, {
+          text: JSON.stringify({
+            id: state.studentData.id,
+            name: state.studentData.name,
+            phone: state.studentData.phone,
+            address: state.studentData.address,
+            gps: [state.studentData.lat, state.studentData.lng]
+          }),
+          width: 64,
+          height: 64,
+          colorDark: '#090d16',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch(e) {
+        container.innerHTML = '<div class="text-[9px] font-mono text-slate-900 font-bold p-1">QR</div>';
+      }
+    }
+
+    /* Switch Main App Views */
+    function switchView(viewName) {
+      state.activeView = viewName;
+
+      document.getElementById('view-student').classList.add('hidden');
+      document.getElementById('view-finder').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+
+      ['student', 'finder', 'admin'].forEach(v => {
+        const btn = document.getElementById(`nav-${v}`);
+        if (v === viewName) {
+          btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition bg-blue-600 text-white shadow-md shadow-blue-600/30 cursor-pointer';
+        } else {
+          btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer';
+        }
+      });
+
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+    }
+
+    /* Switch Student Mobile Sub-Tabs (Virtual ID vs Request Physical Card) */
+    function switchStudentSubTab(subTabName) {
+      state.activeSubTab = subTabName;
+      const virtualIdSub = document.getElementById('subtab-virtualId');
+      const requestPhysicalSub = document.getElementById('subtab-requestPhysical');
+      const tabBtnId = document.getElementById('tabBtn-virtualId');
+      const tabBtnReq = document.getElementById('tabBtn-requestPhysical');
+
+      if (subTabName === 'virtualId') {
+        virtualIdSub.classList.remove('hidden');
+        requestPhysicalSub.classList.add('hidden');
+        tabBtnId.className = 'flex flex-col items-center space-y-0.5 text-blue-400 cursor-pointer';
+        tabBtnReq.className = 'flex flex-col items-center space-y-0.5 text-slate-400 hover:text-white transition cursor-pointer';
+      } else {
+        virtualIdSub.classList.add('hidden');
+        requestPhysicalSub.classList.remove('hidden');
+        tabBtnId.className = 'flex flex-col items-center space-y-0.5 text-slate-400 hover:text-white transition cursor-pointer';
+        tabBtnReq.className = 'flex flex-col items-center space-y-0.5 text-blue-400 cursor-pointer';
+      }
+    }
+
+    /* Set & Toggle Verification State */
+    function setVerificationState(isVerified) {
+      state.isVerified = isVerified;
+      updateVerificationUI();
+      showToast(isVerified ? 'Account Verified' : 'Account Unverified', isVerified ? 'Virtual Student ID generated.' : 'Virtual Student ID locked.');
+    }
+
+    function toggleVerificationState() {
+      state.isVerified = !state.isVerified;
+      updateVerificationUI();
+      showToast(state.isVerified ? 'Account Verified' : 'Account Unverified', state.isVerified ? 'Virtual Student ID generated.' : 'Virtual Student ID locked.');
+    }
+
+    function updateVerificationUI() {
+      const toggleBtn = document.getElementById('verificationToggleBtn');
+      const toggleIcon = document.getElementById('verificationToggleIcon');
+      const toggleText = document.getElementById('verificationToggleText');
+      const verifiedWrapper = document.getElementById('verifiedIdWrapper');
+      const unverifiedWrapper = document.getElementById('unverifiedIdWrapper');
+
+      if (toggleBtn) {
+        if (state.isVerified) {
+          toggleBtn.className = 'px-2.5 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-full text-[9px] font-bold shadow flex items-center space-x-1 cursor-pointer hover:scale-105 transition';
+          if (toggleIcon) toggleIcon.className = 'fa-solid fa-circle-check';
+          if (toggleText) toggleText.innerText = 'Verified';
+        } else {
+          toggleBtn.className = 'px-2.5 py-1 bg-red-500/25 text-red-300 border border-red-500/40 rounded-full text-[9px] font-bold shadow flex items-center space-x-1 cursor-pointer hover:scale-105 transition';
+          if (toggleIcon) toggleIcon.className = 'fa-solid fa-lock';
+          if (toggleText) toggleText.innerText = 'Not Verified';
+        }
+      }
+
+      if (verifiedWrapper && unverifiedWrapper) {
+        if (state.isVerified) {
+          verifiedWrapper.classList.remove('hidden');
+          unverifiedWrapper.classList.add('hidden');
+        } else {
+          verifiedWrapper.classList.add('hidden');
+          unverifiedWrapper.classList.remove('hidden');
+        }
+      }
+    }
+
+    /* Enrollment Verification Modal Handlers */
+    function openEnrollmentModal() {
+      document.getElementById('enrollmentModal').classList.remove('hidden');
+    }
+    function closeEnrollmentModal() {
+      document.getElementById('enrollmentModal').classList.add('hidden');
+    }
+
+    function submitEnrollmentVerification(e) {
+      e.preventDefault();
+      closeEnrollmentModal();
+      state.isVerified = true;
+      updateVerificationUI();
+      showToast('Form 5 Verified!', 'Your enrollment form has been verified. Virtual Student ID unlocked.');
+    }
+
+    /* Physical ID Replacement Modal Handlers */
+    function openReplacementModal() {
+      document.getElementById('replacementModal').classList.remove('hidden');
+    }
+    function closeReplacementModal() {
+      document.getElementById('replacementModal').classList.add('hidden');
+    }
+
+    function submitReplacementRequest(e) {
+      e.preventDefault();
+      const reason = document.getElementById('requestReasonSelect').value;
+      state.studentData.reason = reason;
+      document.getElementById('adminRequestReason').innerText = reason;
+      closeReplacementModal();
+      showToast('Replacement Request Submitted', 'Registrar is processing your physical card printing.');
+    }
+
+    function updateRequestProgress(step) {
+      const step3Icon = document.getElementById('step3Icon');
+      const step3Text = document.getElementById('step3Text');
+      const step4Icon = document.getElementById('step4Icon');
+      const step4Text = document.getElementById('step4Text');
+      const adminTag = document.getElementById('adminStatusTag');
+
+      if (step === 3) {
+        step3Icon.className = 'w-6 h-6 mx-auto rounded-full bg-blue-600 text-white font-bold flex items-center justify-center';
+        step3Text.className = 'text-blue-400 block font-bold';
+        adminTag.innerText = 'PRINTING';
+        showToast('Status Updated', 'Physical card sent to printing queue.');
+      } else if (step === 4) {
+        step3Icon.className = 'w-6 h-6 mx-auto rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center';
+        step4Icon.className = 'w-6 h-6 mx-auto rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center';
+        step4Text.className = 'text-emerald-400 block font-bold';
+        adminTag.innerText = 'READY FOR PICKUP';
+        adminTag.className = 'px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        showToast('Ready for Pickup!', 'Student notified to claim physical ID card.');
+      }
+    }
+
+    /* Leaflet GPS Map Initialization */
+    function initOrRefreshLeafletMap() {
+      const mapContainer = document.getElementById('finderMap');
+      if (!mapContainer) return;
+
+      if (!state.leafletMap) {
+        state.leafletMap = L.map('finderMap').setView([state.studentData.lat, state.studentData.lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap'
+        }).addTo(state.leafletMap);
+
+        state.leafletMarker = L.marker([state.studentData.lat, state.studentData.lng]).addTo(state.leafletMap);
+        state.leafletMarker.bindPopup(`<b>${state.studentData.name}'s Residence</b><br>${state.studentData.address}`).openPopup();
+      } else {
+        state.leafletMap.invalidateSize();
+      }
+    }
+
+    /* Tenant Theme Switcher */
+    function changeTenant(key) {
+      state.activeTenant = key;
+      const tenant = state.tenants[key];
+
+      document.documentElement.style.setProperty('--brand-primary', tenant.primary);
+      document.documentElement.style.setProperty('--brand-secondary', tenant.secondary);
+
+      document.getElementById('institutionNameDisplay').innerText = tenant.name;
+      document.getElementById('cardHeaderTitle').innerText = `${tenant.name.toUpperCase()} MANILA`;
+
+      showToast('Institution Rebranded', `Switched theme parameters to ${tenant.name}`);
+    }
+
+    /* Toast Notification Helper */
+    function showToast(title, msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastMessage').innerText = msg;
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
